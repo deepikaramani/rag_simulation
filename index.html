@@ -1,212 +1,286 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>RAG Simulator</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body {
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: #e2e8f0;
-    margin: 0;
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
 }
-
 .container {
-    max-width: 1200px;
-    margin: auto;
-    padding: 20px;
+  max-width: 1300px;
+  margin: auto;
+  padding: 20px;
 }
-
 h1 {
-    text-align: center;
-    margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 20px;
 }
-
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
 .section {
-    background: #1e293b;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 10px;
+  background: #1e293b;
+  padding: 15px;
+  border-radius: 10px;
+  transition: 0.2s;
 }
-
+.section:hover {
+  transform: scale(1.01);
+}
 textarea, input {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 6px;
-    border: none;
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  margin-top: 8px;
 }
-
 button {
-    margin-top: 10px;
-    padding: 10px 15px;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+  margin-top: 10px;
+  padding: 10px;
+  background: #3b82f6;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
 }
-
 button:hover {
-    background: #2563eb;
+  background: #2563eb;
 }
-
-.chunks {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
-
-.chunk {
-    background: #334155;
-    padding: 8px;
-    border-radius: 6px;
-    font-size: 12px;
+.card {
+  background: #334155;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  max-width: 180px;
 }
-
 .highlight {
-    background: #22c55e;
-    color: black;
+  background: #22c55e;
+  color: black;
 }
-
 pre {
-    background: #020617;
-    padding: 10px;
-    border-radius: 6px;
-    overflow-x: auto;
+  background: #020617;
+  padding: 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 12px;
+}
+.label {
+  font-size: 12px;
+  color: #94a3b8;
 }
 </style>
 </head>
 
 <body>
 <div class="container">
-
-<h1>🔍 RAG Simulator</h1>
+<h1>🔍 RAG Pipeline Simulator</h1>
 
 <div class="section">
-<h3>1. Add Knowledge Base</h3>
-<textarea id="dataInput" rows="4" placeholder="Paste your newsletter or notes here..."></textarea>
-<button onclick="chunkData()">Chunk Data</button>
+<h3>1. Data Ingestion</h3>
+<div class="label">Paste documents (newsletters, notes)</div>
+<textarea id="inputData" rows="4"></textarea>
+<button onclick="ingest()">Ingest Data</button>
+</div>
+
+<div class="grid">
+
+<div class="section">
+<h3>2. Chunking</h3>
+<div class="label">Splitting text into smaller chunks</div>
+<div id="chunks" class="cards"></div>
 </div>
 
 <div class="section">
-<h3>2. Chunks</h3>
-<div id="chunks" class="chunks"></div>
+<h3>3. Embeddings</h3>
+<div class="label">Simulated vector representations</div>
+<div id="embeddings" class="cards"></div>
 </div>
 
 <div class="section">
-<h3>3. User Query</h3>
-<input id="queryInput" placeholder="Ask a question..." />
-<button onclick="retrieve()">Retrieve Relevant Chunks</button>
+<h3>4. Vector DB</h3>
+<div class="label">Stored chunk + embedding pairs</div>
+<pre id="vectorDB"></pre>
 </div>
 
 <div class="section">
-<h3>4. Retrieved Chunks (Top-K)</h3>
-<div id="retrieved" class="chunks"></div>
+<h3>5. Query</h3>
+<input id="query" placeholder="Ask a question..." />
+<button onclick="runQuery()">Run Query</button>
 </div>
 
 <div class="section">
-<h3>5. Prompt Augmentation</h3>
-<pre id="promptBox"></pre>
+<h3>6. Query Embedding</h3>
+<pre id="queryEmbedding"></pre>
 </div>
 
 <div class="section">
-<h3>6. Simulated LLM Output</h3>
-<pre id="outputBox"></pre>
+<h3>7. Similarity Search</h3>
+<div class="label">Scores for each chunk</div>
+<div id="scores"></div>
 </div>
 
+<div class="section">
+<h3>8. Retrieved Chunks</h3>
+<div id="retrieved" class="cards"></div>
+</div>
+
+<div class="section">
+<h3>9. Prompt Augmentation</h3>
+<pre id="prompt"></pre>
+</div>
+
+<div class="section">
+<h3>10. LLM Output (Simulated)</h3>
+<pre id="output"></pre>
+</div>
+
+<div class="section">
+<h3>11. Observability Panel</h3>
+<pre id="debug"></pre>
+</div>
+
+</div>
 </div>
 
 <script>
 let chunks = [];
+let embeddings = [];
 
-function chunkData() {
-    const text = document.getElementById("dataInput").value;
-    chunks = text.split(".").map(c => c.trim()).filter(c => c);
+function ingest() {
+  const text = document.getElementById("inputData").value;
+  chunks = text.split(/[.?!]/).map(t => t.trim()).filter(t => t);
+  embeddings = chunks.map(c => fakeEmbedding(c));
 
-    const chunkContainer = document.getElementById("chunks");
-    chunkContainer.innerHTML = "";
+  renderChunks();
+  renderEmbeddings();
+  renderDB();
+}
 
-    chunks.forEach((c, i) => {
-        const div = document.createElement("div");
-        div.className = "chunk";
-        div.innerText = c;
-        chunkContainer.appendChild(div);
-    });
+function fakeEmbedding(text) {
+  let vec = [];
+  for (let i = 0; i < 5; i++) {
+    vec.push((text.charCodeAt(i % text.length) || 0) % 10);
+  }
+  return vec;
+}
+
+function renderChunks() {
+  const el = document.getElementById("chunks");
+  el.innerHTML = "";
+  chunks.forEach((c, i) => {
+    el.innerHTML += `<div class="card">#${i} ${c}</div>`;
+  });
+}
+
+function renderEmbeddings() {
+  const el = document.getElementById("embeddings");
+  el.innerHTML = "";
+  embeddings.forEach((e, i) => {
+    el.innerHTML += `<div class="card">#${i} [${e.join(", ")}]</div>`;
+  });
+}
+
+function renderDB() {
+  let db = chunks.map((c, i) => ({
+    chunk: c,
+    embedding: embeddings[i]
+  }));
+  document.getElementById("vectorDB").innerText = JSON.stringify(db, null, 2);
 }
 
 function similarity(a, b) {
-    a = a.toLowerCase();
-    b = b.toLowerCase();
-
-    let score = 0;
-    const words = b.split(" ");
-
-    words.forEach(w => {
-        if (a.includes(w)) score++;
-    });
-
-    return score;
+  let score = 0;
+  let words = b.toLowerCase().split(" ");
+  words.forEach(w => {
+    if (a.toLowerCase().includes(w)) score++;
+  });
+  return score;
 }
 
-function retrieve() {
-    const query = document.getElementById("queryInput").value;
+function runQuery() {
+  const query = document.getElementById("query").value;
+  const qEmbed = fakeEmbedding(query);
 
-    let scored = chunks.map(c => ({
-        text: c,
-        score: similarity(c, query)
-    }));
+  document.getElementById("queryEmbedding").innerText = "[" + qEmbed.join(", ") + "]";
 
-    scored.sort((a, b) => b.score - a.score);
+  let scored = chunks.map((c, i) => ({
+    chunk: c,
+    score: similarity(c, query),
+    index: i
+  }));
 
-    const topK = scored.slice(0, 3);
+  scored.sort((a,b)=>b.score-a.score);
 
-    const retrievedDiv = document.getElementById("retrieved");
-    retrievedDiv.innerHTML = "";
+  let topK = scored.slice(0,3);
 
-    topK.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "chunk highlight";
-        div.innerText = c.text + " (score: " + c.score + ")";
-        retrievedDiv.appendChild(div);
-    });
+  renderScores(scored);
+  renderRetrieved(topK);
+  buildPrompt(query, topK);
+  generateOutput(query, topK);
+  renderDebug(topK);
+}
 
-    buildPrompt(query, topK);
-    generateOutput(query, topK);
+function renderScores(scored) {
+  const el = document.getElementById("scores");
+  el.innerHTML = "";
+  scored.forEach(s => {
+    el.innerHTML += `<div>#${s.index}: ${s.score}</div>`;
+  });
+}
+
+function renderRetrieved(topK) {
+  const el = document.getElementById("retrieved");
+  el.innerHTML = "";
+  topK.forEach(t => {
+    el.innerHTML += `<div class="card highlight">#${t.index} (${t.score}) ${t.chunk}</div>`;
+  });
 }
 
 function buildPrompt(query, topK) {
-    const context = topK.map(c => c.text).join("\n");
+  const context = topK.map(t=>t.chunk).join("\n");
 
-    const prompt = `
-You are an AI assistant.
-
-Use ONLY the context below to answer.
+  const prompt = `System: You are a helpful AI. Use ONLY the context.
 
 Context:
 ${context}
 
 Question:
-${query}
-`;
+${query}`;
 
-    document.getElementById("promptBox").innerText = prompt;
+  document.getElementById("prompt").innerText = prompt;
 }
 
 function generateOutput(query, topK) {
-    let answer = "Based on the provided context:\n\n";
+  let answer = "Answer (simulated):\n\n";
+  topK.forEach(t=>{
+    answer += "- " + t.chunk + "\n";
+  });
 
-    topK.forEach(c => {
-        answer += "- " + c.text + "\n";
-    });
+  document.getElementById("output").innerText = answer;
+}
 
-    answer += "\n(This is a simulated response)";
-
-    document.getElementById("outputBox").innerText = answer;
+function renderDebug(topK) {
+  const debug = {
+    retrieved: topK,
+    note: "Output based only on retrieved chunks"
+  };
+  document.getElementById("debug").innerText = JSON.stringify(debug, null, 2);
 }
 </script>
 
 </body>
 </html>
+```
