@@ -2,285 +2,1250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>RAG Simulator</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body {
-  margin: 0;
-  font-family: Inter, Arial, sans-serif;
-  background: #0f172a;
-  color: #e2e8f0;
-}
-.container {
-  max-width: 1300px;
-  margin: auto;
-  padding: 20px;
-}
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-.section {
-  background: #1e293b;
-  padding: 15px;
-  border-radius: 10px;
-  transition: 0.2s;
-}
-.section:hover {
-  transform: scale(1.01);
-}
-textarea, input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: none;
-  margin-top: 8px;
-}
-button {
-  margin-top: 10px;
-  padding: 10px;
-  background: #3b82f6;
-  border: none;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-}
-button:hover {
-  background: #2563eb;
-}
-.cards {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.card {
-  background: #334155;
-  padding: 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  max-width: 180px;
-}
-.highlight {
-  background: #22c55e;
-  color: black;
-}
-pre {
-  background: #020617;
-  padding: 10px;
-  border-radius: 6px;
-  overflow-x: auto;
-  font-size: 12px;
-}
-.label {
-  font-size: 12px;
-  color: #94a3b8;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced RAG Pipeline Simulator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9ca3af;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            background: rgba(30, 30, 50, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 212, 255, 0.2);
+        }
+
+        .section-title {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-desc {
+            color: #9ca3af;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            font-style: italic;
+            padding: 10px;
+            background: rgba(0, 212, 255, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid #00d4ff;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            background: rgba(20, 20, 40, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            color: #e0e0e0;
+            font-size: 14px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(20, 20, 40, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px 15px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #9ca3af;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #00d4ff;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #00d4ff;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle.active {
+            background: #00d4ff;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .toggle-label {
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .chunk-card {
+            background: rgba(20, 20, 40, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .chunk-card:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .chunk-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+
+        .chunk-text {
+            color: #d0d0d0;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .embedding-preview {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #9ca3af;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .json-viewer {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #a8ff60;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .retrieved-item {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 3px solid #00d4ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+
+        .retrieved-item.success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: #10b981;
+        }
+
+        .retrieved-item.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: #f59e0b;
+        }
+
+        .retrieved-item.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: #ef4444;
+        }
+
+        .score {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+
+        .score.high {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .score.medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .score.low {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .warning-banner {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2));
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin: 15px 0;
+            color: #fca5a5;
+            font-size: 13px;
+            display: none;
+        }
+
+        .warning-banner.active {
+            display: block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .prompt-box {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #d0d0d0;
+        }
+
+        .highlight-context {
+            background: rgba(0, 212, 255, 0.2);
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #00d4ff;
+        }
+
+        .output-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .output-box.hallucinated {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.1));
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .query-result {
+            background: rgba(20, 20, 40, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .debug-panel {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .debug-section {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .debug-section:last-child {
+            border-bottom: none;
+        }
+
+        .debug-title {
+            color: #00d4ff;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .failure-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .stat-card {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #00d4ff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
+
+        .rerank-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .rerank-column h4 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 212, 255, 0.7);
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .referenced-chunks {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .referenced-chunks h4 {
+            color: #9ca3af;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .chunk-reference {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(0, 212, 255, 0.2);
+            border-radius: 4px;
+            margin: 4px;
+            font-size: 12px;
+            color: #00d4ff;
+        }
+    </style>
 </head>
-
 <body>
-<div class="container">
-<h1>🔍 RAG Pipeline Simulator</h1>
+    <div class="container">
+        <h1>🚀 Advanced RAG Pipeline Simulator</h1>
+        <p class="subtitle">Interactive debugging tool for Retrieval-Augmented Generation systems</p>
 
-<div class="section">
-<h3>1. Data Ingestion</h3>
-<div class="label">Paste documents (newsletters, notes)</div>
-<textarea id="inputData" rows="4"></textarea>
-<button onclick="ingest()">Ingest Data</button>
-</div>
+        <div class="grid">
+            <!-- Data Ingestion -->
+            <div class="section">
+                <h2 class="section-title">
+                    📄 Data Ingestion
+                </h2>
+                <p class="section-desc">
+                    Loading raw documents into the system - like filling a library with books before cataloging them.
+                </p>
+                <textarea id="inputData" placeholder="Paste your documents here (multiple paragraphs supported)...
 
-<div class="grid">
+Example:
+Artificial intelligence is transforming healthcare through diagnostic tools and personalized medicine.
 
-<div class="section">
-<h3>2. Chunking</h3>
-<div class="label">Splitting text into smaller chunks</div>
-<div id="chunks" class="cards"></div>
-</div>
+Machine learning models can analyze medical images with high accuracy.
 
-<div class="section">
-<h3>3. Embeddings</h3>
-<div class="label">Simulated vector representations</div>
-<div id="embeddings" class="cards"></div>
-</div>
+Natural language processing helps extract insights from clinical notes."></textarea>
+                <button onclick="ingestData()">📥 Ingest Data</button>
+                <div id="ingestionStats" class="stat-grid" style="margin-top: 15px;"></div>
+            </div>
 
-<div class="section">
-<h3>4. Vector DB</h3>
-<div class="label">Stored chunk + embedding pairs</div>
-<pre id="vectorDB"></pre>
-</div>
+            <!-- Chunking -->
+            <div class="section">
+                <h2 class="section-title">
+                    ✂️ Chunking
+                </h2>
+                <p class="section-desc">
+                    Splitting documents into digestible pieces - like cutting a pizza into slices so everyone can grab a piece.
+                </p>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Chunk Size</span>
+                        <span id="chunkSizeValue">Medium (100 chars)</span>
+                    </div>
+                    <input type="range" id="chunkSize" min="50" max="300" value="100" oninput="updateChunkSize()">
+                </div>
+                <button onclick="performChunking()">✂️ Create Chunks</button>
+                <div id="chunksDisplay" style="margin-top: 15px;"></div>
+            </div>
+        </div>
 
-<div class="section">
-<h3>5. Query</h3>
-<input id="query" placeholder="Ask a question..." />
-<button onclick="runQuery()">Run Query</button>
-</div>
+        <!-- Embeddings -->
+        <div class="section">
+            <h2 class="section-title">
+                🧬 Embedding Generation
+            </h2>
+            <p class="section-desc">
+                Converting text into numerical vectors - like translating words into coordinates on a map where similar meanings are neighbors.
+            </p>
+            <div id="embeddingsDisplay"></div>
+        </div>
 
-<div class="section">
-<h3>6. Query Embedding</h3>
-<pre id="queryEmbedding"></pre>
-</div>
+        <!-- Vector Database -->
+        <div class="section">
+            <h2 class="section-title">
+                🗄️ Vector Database
+            </h2>
+            <p class="section-desc">
+                Storing chunks with their embeddings - a searchable index where we can find similar items by their coordinates.
+            </p>
+            <div id="vectorDbDisplay" class="json-viewer"></div>
+        </div>
 
-<div class="section">
-<h3>7. Similarity Search</h3>
-<div class="label">Scores for each chunk</div>
-<div id="scores"></div>
-</div>
+        <div class="grid">
+            <!-- Query Input -->
+            <div class="section">
+                <h2 class="section-title">
+                    🔍 Query Input
+                </h2>
+                <p class="section-desc">
+                    User question that triggers the retrieval process - the search query that kicks off the whole pipeline.
+                </p>
+                <input type="text" id="queryInput" placeholder="Enter your question here...">
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Top-K Results</span>
+                        <span id="topKValue">3</span>
+                    </div>
+                    <input type="range" id="topK" min="1" max="10" value="3" oninput="updateTopK()">
+                </div>
+                <div class="toggle-container">
+                    <div class="toggle" id="rerankToggle" onclick="toggleRerank()">
+                        <div class="toggle-slider"></div>
+                    </div>
+                    <span class="toggle-label">Enable Re-ranking</span>
+                </div>
+                <button onclick="runQuery()">🚀 Run Query</button>
+            </div>
 
-<div class="section">
-<h3>8. Retrieved Chunks</h3>
-<div id="retrieved" class="cards"></div>
-</div>
+            <!-- Failure Simulation -->
+            <div class="section">
+                <h2 class="section-title">
+                    ⚠️ Failure Simulation
+                </h2>
+                <p class="section-desc">
+                    Inject common RAG failures to see what breaks - a stress test for your pipeline to learn troubleshooting.
+                </p>
+                <div class="failure-controls">
+                    <div class="toggle-container">
+                        <div class="toggle" id="badChunkingToggle" onclick="toggleFailure('badChunking')">
+                            <div class="toggle-slider"></div>
+                        </div>
+                        <span class="toggle-label">Bad Chunking</span>
+                    </div>
+                    <div class="toggle-container">
+                        <div class="toggle" id="poorEmbeddingsToggle" onclick="toggleFailure('poorEmbeddings')">
+                            <div class="toggle-slider"></div>
+                        </div>
+                        <span class="toggle-label">Poor Embeddings</span>
+                    </div>
+                    <div class="toggle-container">
+                        <div class="toggle" id="missingContextToggle" onclick="toggleFailure('missingContext')">
+                            <div class="toggle-slider"></div>
+                        </div>
+                        <span class="toggle-label">Missing Context</span>
+                    </div>
+                    <div class="toggle-container">
+                        <div class="toggle" id="hallucinationToggle" onclick="toggleFailure('hallucination')">
+                            <div class="toggle-slider"></div>
+                        </div>
+                        <span class="toggle-label">Force Hallucination</span>
+                    </div>
+                </div>
+                <div id="warningBanner" class="warning-banner"></div>
+            </div>
+        </div>
 
-<div class="section">
-<h3>9. Prompt Augmentation</h3>
-<pre id="prompt"></pre>
-</div>
+        <!-- Retrieval Results -->
+        <div class="section">
+            <h2 class="section-title">
+                🎯 Retrieval & Re-ranking
+            </h2>
+            <p class="section-desc">
+                Finding relevant chunks and optionally reordering them - like searching your email and then sorting by importance.
+            </p>
+            <div id="retrievalDisplay"></div>
+        </div>
 
-<div class="section">
-<h3>10. LLM Output (Simulated)</h3>
-<pre id="output"></pre>
-</div>
+        <!-- Prompt Augmentation -->
+        <div class="section">
+            <h2 class="section-title">
+                📝 Prompt Augmentation
+            </h2>
+            <p class="section-desc">
+                Injecting retrieved context into the LLM prompt - stuffing your question with background info before asking.
+            </p>
+            <div id="promptDisplay" class="prompt-box"></div>
+        </div>
 
-<div class="section">
-<h3>11. Observability Panel</h3>
-<pre id="debug"></pre>
-</div>
+        <!-- LLM Output -->
+        <div class="section">
+            <h2 class="section-title">
+                💬 LLM Output
+            </h2>
+            <p class="section-desc">
+                Generated response based on retrieved context - the final answer, ideally grounded in the documents.
+            </p>
+            <div id="outputDisplay"></div>
+        </div>
 
-</div>
-</div>
+        <!-- Debug Panel -->
+        <div class="section">
+            <h2 class="section-title">
+                🐛 Observability Console
+            </h2>
+            <p class="section-desc">
+                Full pipeline trace for debugging - your RAG system's flight recorder showing everything that happened.
+            </p>
+            <div id="debugPanel" class="debug-panel"></div>
+        </div>
 
-<script>
-let chunks = [];
-let embeddings = [];
+        <!-- Multi-Query Comparison -->
+        <div class="section" id="comparisonSection" style="display: none;">
+            <h2 class="section-title">
+                📊 Multi-Query Comparison
+            </h2>
+            <p class="section-desc">
+                Side-by-side comparison of different queries - see how varying inputs affect retrieval and output.
+            </p>
+            <div id="comparisonDisplay" class="comparison-grid"></div>
+        </div>
+    </div>
 
-function ingest() {
-  const text = document.getElementById("inputData").value;
-  chunks = text.split(/[.?!]/).map(t => t.trim()).filter(t => t);
-  embeddings = chunks.map(c => fakeEmbedding(c));
+    <script>
+        // Global State
+        let state = {
+            rawData: '',
+            chunks: [],
+            embeddings: [],
+            vectorDb: [],
+            queryEmbedding: null,
+            retrievedChunks: [],
+            rerankEnabled: false,
+            topK: 3,
+            chunkSize: 100,
+            failures: {
+                badChunking: false,
+                poorEmbeddings: false,
+                missingContext: false,
+                hallucination: false
+            },
+            queryHistory: []
+        };
 
-  renderChunks();
-  renderEmbeddings();
-  renderDB();
-}
+        // Utility Functions
+        function generateEmbedding(text, isPoor = false) {
+            if (isPoor) {
+                return Array.from({length: 8}, () => Math.random());
+            }
+            const words = text.toLowerCase().split(/\s+/);
+            const embedding = new Array(8).fill(0);
+            words.forEach((word, i) => {
+                const hash = word.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                embedding[i % 8] += Math.sin(hash) * 0.5 + 0.5;
+            });
+            return embedding.map(v => Math.max(0, Math.min(1, v)));
+        }
 
-function fakeEmbedding(text) {
-  let vec = [];
-  for (let i = 0; i < 5; i++) {
-    vec.push((text.charCodeAt(i % text.length) || 0) % 10);
-  }
-  return vec;
-}
+        function cosineSimilarity(a, b) {
+            const dotProduct = a.reduce((sum, val, i) => sum + val * b[i], 0);
+            const magA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+            const magB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+            return dotProduct / (magA * magB);
+        }
 
-function renderChunks() {
-  const el = document.getElementById("chunks");
-  el.innerHTML = "";
-  chunks.forEach((c, i) => {
-    el.innerHTML += `<div class="card">#${i} ${c}</div>`;
-  });
-}
+        function formatEmbedding(emb) {
+            return '[' + emb.map(v => v.toFixed(3)).join(', ') + ']';
+        }
 
-function renderEmbeddings() {
-  const el = document.getElementById("embeddings");
-  el.innerHTML = "";
-  embeddings.forEach((e, i) => {
-    el.innerHTML += `<div class="card">#${i} [${e.join(", ")}]</div>`;
-  });
-}
+        function getScoreClass(score) {
+            if (score > 0.7) return 'high';
+            if (score > 0.4) return 'medium';
+            return 'low';
+        }
 
-function renderDB() {
-  let db = chunks.map((c, i) => ({
-    chunk: c,
-    embedding: embeddings[i]
-  }));
-  document.getElementById("vectorDB").innerText = JSON.stringify(db, null, 2);
-}
+        // Update UI helpers
+        function updateChunkSize() {
+            const val = document.getElementById('chunkSize').value;
+            state.chunkSize = parseInt(val);
+            let label = 'Custom';
+            if (val < 100) label = 'Small';
+            else if (val < 200) label = 'Medium';
+            else label = 'Large';
+            document.getElementById('chunkSizeValue').textContent = `${label} (${val} chars)`;
+        }
 
-function similarity(a, b) {
-  let score = 0;
-  let words = b.toLowerCase().split(" ");
-  words.forEach(w => {
-    if (a.toLowerCase().includes(w)) score++;
-  });
-  return score;
-}
+        function updateTopK() {
+            state.topK = parseInt(document.getElementById('topK').value);
+            document.getElementById('topKValue').textContent = state.topK;
+        }
 
-function runQuery() {
-  const query = document.getElementById("query").value;
-  const qEmbed = fakeEmbedding(query);
+        function toggleRerank() {
+            state.rerankEnabled = !state.rerankEnabled;
+            document.getElementById('rerankToggle').classList.toggle('active');
+        }
 
-  document.getElementById("queryEmbedding").innerText = "[" + qEmbed.join(", ") + "]";
+        function toggleFailure(type) {
+            state.failures[type] = !state.failures[type];
+            document.getElementById(type + 'Toggle').classList.toggle('active');
+            updateWarningBanner();
+        }
 
-  let scored = chunks.map((c, i) => ({
-    chunk: c,
-    score: similarity(c, query),
-    index: i
-  }));
+        function updateWarningBanner() {
+            const active = Object.entries(state.failures).filter(([k, v]) => v);
+            const banner = document.getElementById('warningBanner');
+            if (active.length > 0) {
+                banner.classList.add('active');
+                banner.innerHTML = '⚠️ Active Failures: ' + active.map(([k]) => {
+                    const labels = {
+                        badChunking: 'Bad Chunking',
+                        poorEmbeddings: 'Poor Embeddings',
+                        missingContext: 'Missing Context',
+                        hallucination: 'Hallucination Mode'
+                    };
+                    return labels[k];
+                }).join(', ');
+            } else {
+                banner.classList.remove('active');
+            }
+        }
 
-  scored.sort((a,b)=>b.score-a.score);
+        // Main Pipeline Functions
+        function ingestData() {
+            state.rawData = document.getElementById('inputData').value.trim();
+            if (!state.rawData) {
+                alert('Please enter some data first!');
+                return;
+            }
 
-  let topK = scored.slice(0,3);
+            const stats = document.getElementById('ingestionStats');
+            const charCount = state.rawData.length;
+            const wordCount = state.rawData.split(/\s+/).length;
+            const paraCount = state.rawData.split(/\n\n+/).filter(p => p.trim()).length;
 
-  renderScores(scored);
-  renderRetrieved(topK);
-  buildPrompt(query, topK);
-  generateOutput(query, topK);
-  renderDebug(topK);
-}
+            stats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${charCount}</div>
+                    <div class="stat-label">Characters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${wordCount}</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${paraCount}</div>
+                    <div class="stat-label">Paragraphs</div>
+                </div>
+            `;
 
-function renderScores(scored) {
-  const el = document.getElementById("scores");
-  el.innerHTML = "";
-  scored.forEach(s => {
-    el.innerHTML += `<div>#${s.index}: ${s.score}</div>`;
-  });
-}
+            performChunking();
+        }
 
-function renderRetrieved(topK) {
-  const el = document.getElementById("retrieved");
-  el.innerHTML = "";
-  topK.forEach(t => {
-    el.innerHTML += `<div class="card highlight">#${t.index} (${t.score}) ${t.chunk}</div>`;
-  });
-}
+        function performChunking() {
+            if (!state.rawData) {
+                alert('Please ingest data first!');
+                return;
+            }
 
-function buildPrompt(query, topK) {
-  const context = topK.map(t=>t.chunk).join("\n");
+            state.chunks = [];
+            
+            if (state.failures.badChunking) {
+                // Bad chunking: random splits
+                const text = state.rawData;
+                let pos = 0;
+                while (pos < text.length) {
+                    const randomSize = Math.floor(Math.random() * 200) + 20;
+                    state.chunks.push(text.substring(pos, pos + randomSize));
+                    pos += randomSize;
+                }
+            } else {
+                // Good chunking: sentence-aware
+                const sentences = state.rawData.match(/[^.!?]+[.!?]+/g) || [state.rawData];
+                let currentChunk = '';
+                
+                sentences.forEach(sentence => {
+                    if ((currentChunk + sentence).length > state.chunkSize && currentChunk) {
+                        state.chunks.push(currentChunk.trim());
+                        currentChunk = sentence;
+                    } else {
+                        currentChunk += sentence;
+                    }
+                });
+                
+                if (currentChunk) {
+                    state.chunks.push(currentChunk.trim());
+                }
+            }
 
-  const prompt = `System: You are a helpful AI. Use ONLY the context.
+            // Generate embeddings
+            state.embeddings = state.chunks.map(chunk => 
+                generateEmbedding(chunk, state.failures.poorEmbeddings)
+            );
 
-Context:
+            // Build vector DB
+            state.vectorDb = state.chunks.map((chunk, i) => ({
+                id: i,
+                text: chunk,
+                embedding: state.embeddings[i]
+            }));
+
+            displayChunks();
+            displayVectorDb();
+        }
+
+        function displayChunks() {
+            const display = document.getElementById('chunksDisplay');
+            if (state.chunks.length === 0) {
+                display.innerHTML = '<div class="empty-state">No chunks yet. Ingest data first.</div>';
+                return;
+            }
+
+            display.innerHTML = state.chunks.map((chunk, i) => `
+                <div class="chunk-card">
+                    <div class="chunk-header">
+                        <span>Chunk ${i + 1}</span>
+                        <span class="badge">${chunk.length} chars</span>
+                    </div>
+                    <div class="chunk-text">${chunk}</div>
+                    <div class="embedding-preview">Embedding: ${formatEmbedding(state.embeddings[i])}</div>
+                </div>
+            `).join('');
+
+            const embDisplay = document.getElementById('embeddingsDisplay');
+            embDisplay.innerHTML = `
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${state.chunks.length}</div>
+                        <div class="stat-label">Total Chunks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${state.embeddings[0]?.length || 0}D</div>
+                        <div class="stat-label">Embedding Dimensions</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${state.failures.poorEmbeddings ? 'Random' : 'Semantic'}</div>
+                        <div class="stat-label">Embedding Quality</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayVectorDb() {
+            const display = document.getElementById('vectorDbDisplay');
+            if (state.vectorDb.length === 0) {
+                display.innerHTML = '<div class="empty-state">Vector database is empty</div>';
+                return;
+            }
+
+            const json = JSON.stringify(state.vectorDb.map(item => ({
+                id: item.id,
+                text: item.text.substring(0, 50) + '...',
+                embedding: formatEmbedding(item.embedding)
+            })), null, 2);
+
+            display.textContent = json;
+        }
+
+        function runQuery() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) {
+                alert('Please enter a query!');
+                return;
+            }
+
+            if (state.vectorDb.length === 0) {
+                alert('Please ingest and chunk data first!');
+                return;
+            }
+
+            // Generate query embedding
+            state.queryEmbedding = generateEmbedding(query, state.failures.poorEmbeddings);
+
+            // Compute similarities
+            let results = state.vectorDb.map(item => ({
+                ...item,
+                score: cosineSimilarity(state.queryEmbedding, item.embedding),
+                originalRank: item.id
+            }));
+
+            // Sort by similarity
+            results.sort((a, b) => b.score - a.score);
+
+            // Apply missing context failure
+            if (state.failures.missingContext) {
+                results = results.filter(() => Math.random() > 0.5);
+            }
+
+            // Get top-K
+            const topResults = results.slice(0, state.topK);
+
+            let rerankedResults = [...topResults];
+            if (state.rerankEnabled) {
+                // Re-ranking: boost chunks with query keywords
+                const queryWords = query.toLowerCase().split(/\s+/);
+                rerankedResults = topResults.map(item => {
+                    const keywordMatches = queryWords.filter(word => 
+                        item.text.toLowerCase().includes(word)
+                    ).length;
+                    return {
+                        ...item,
+                        rerankScore: item.score * (1 + keywordMatches * 0.15)
+                    };
+                });
+                rerankedResults.sort((a, b) => b.rerankScore - a.rerankScore);
+            }
+
+            state.retrievedChunks = rerankedResults;
+
+            // Display results
+            displayRetrieval(topResults, rerankedResults);
+            displayPrompt(query, rerankedResults);
+            displayOutput(query, rerankedResults);
+            displayDebugPanel(query, topResults, rerankedResults);
+
+            // Add to query history
+            state.queryHistory.push({
+                query,
+                retrieved: rerankedResults,
+                timestamp: new Date().toLocaleTimeString()
+            });
+
+            if (state.queryHistory.length > 1) {
+                displayComparison();
+            }
+        }
+
+        function displayRetrieval(original, reranked) {
+            const display = document.getElementById('retrievalDisplay');
+            
+            if (!state.rerankEnabled) {
+                display.innerHTML = `
+                    <h3 style="color: #00d4ff; margin-bottom: 15px;">Retrieved Chunks (Top-${state.topK})</h3>
+                    ${original.map((item, i) => `
+                        <div class="retrieved-item ${getRetrievalClass(item.score)}">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <strong>Rank ${i + 1} - Chunk ${item.id + 1}</strong>
+                                <span class="score ${getScoreClass(item.score)}">
+                                    Score: ${item.score.toFixed(3)}
+                                </span>
+                            </div>
+                            <div style="color: #d0d0d0; font-size: 13px;">${item.text}</div>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                display.innerHTML = `
+                    <h3 style="color: #00d4ff; margin-bottom: 15px;">Re-ranking Comparison</h3>
+                    <div class="rerank-comparison">
+                        <div class="rerank-column">
+                            <h4>Before Re-ranking</h4>
+                            ${original.map((item, i) => `
+                                <div class="retrieved-item">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <strong>Rank ${i + 1}</strong>
+                                        <span class="score ${getScoreClass(item.score)}">${item.score.toFixed(3)}</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #9ca3af;">Chunk ${item.id + 1}: ${item.text.substring(0, 80)}...</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="rerank-column">
+                            <h4>After Re-ranking</h4>
+                            ${reranked.map((item, i) => `
+                                <div class="retrieved-item ${getRetrievalClass(item.rerankScore)}">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                        <strong>Rank ${i + 1} ${item.originalRank !== original[i]?.originalRank ? '↑' : ''}</strong>
+                                        <span class="score ${getScoreClass(item.rerankScore)}">${item.rerankScore.toFixed(3)}</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #9ca3af;">Chunk ${item.id + 1}: ${item.text.substring(0, 80)}...</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function getRetrievalClass(score) {
+            if (score > 0.7) return 'success';
+            if (score > 0.4) return 'warning';
+            return 'error';
+        }
+
+        function displayPrompt(query, retrieved) {
+            const context = retrieved.map((item, i) => 
+                `[Chunk ${i + 1}]: ${item.text}`
+            ).join('\n\n');
+
+            const prompt = `SYSTEM: You are a helpful AI assistant. Answer the user's question based on the provided context.
+
+CONTEXT:
 ${context}
 
-Question:
-${query}`;
+USER QUESTION: ${query}
 
-  document.getElementById("prompt").innerText = prompt;
-}
+ASSISTANT:`;
 
-function generateOutput(query, topK) {
-  let answer = "Answer (simulated):\n\n";
-  topK.forEach(t=>{
-    answer += "- " + t.chunk + "\n";
-  });
+            const highlighted = prompt.replace(/\[Chunk \d+\]: [^\n]+/g, match => 
+                `<span class="highlight-context">${match}</span>`
+            );
 
-  document.getElementById("output").innerText = answer;
-}
+            document.getElementById('promptDisplay').innerHTML = highlighted;
+        }
 
-function renderDebug(topK) {
-  const debug = {
-    retrieved: topK,
-    note: "Output based only on retrieved chunks"
-  };
-  document.getElementById("debug").innerText = JSON.stringify(debug, null, 2);
-}
-</script>
+        function displayOutput(query, retrieved) {
+            const display = document.getElementById('outputDisplay');
+            
+            // Simple answer generation based on retrieved context
+            const contextText = retrieved.map(r => r.text).join(' ');
+            let answer = generateAnswer(query, contextText);
 
+            if (state.failures.hallucination) {
+                answer += " Additionally, studies show that unicorns are commonly found in data centers, which significantly improves AI performance by 300%.";
+            }
+
+            const isHallucinated = state.failures.hallucination;
+
+            display.innerHTML = `
+                <div class="output-box ${isHallucinated ? 'hallucinated' : ''}">
+                    <h3 style="color: ${isHallucinated ? '#ef4444' : '#10b981'}; margin-bottom: 15px;">
+                        ${isHallucinated ? '⚠️ Answer (Hallucination Detected)' : '✓ Answer'}
+                    </h3>
+                    <div style="color: #e0e0e0; line-height: 1.8; font-size: 14px;">
+                        ${answer}
+                    </div>
+                    <div class="referenced-chunks">
+                        <h4>Referenced Chunks:</h4>
+                        ${retrieved.map((item, i) => 
+                            `<span class="chunk-reference">Chunk ${item.id + 1}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateAnswer(query, context) {
+            const queryLower = query.toLowerCase();
+            const contextLower = context.toLowerCase();
+
+            // Extract key information
+            const sentences = context.match(/[^.!?]+[.!?]+/g) || [context];
+            const relevantSentences = sentences.filter(s => {
+                const sLower = s.toLowerCase();
+                return query.split(/\s+/).some(word => 
+                    word.length > 3 && sLower.includes(word.toLowerCase())
+                );
+            });
+
+            if (relevantSentences.length > 0) {
+                return relevantSentences.slice(0, 3).join(' ');
+            }
+
+            return "Based on the retrieved context, " + sentences[0];
+        }
+
+        function displayDebugPanel(query, original, reranked) {
+            const panel = document.getElementById('debugPanel');
+            
+            panel.innerHTML = `
+                <div class="debug-section">
+                    <div class="debug-title">🔍 Query Analysis</div>
+                    <div style="color: #d0d0d0;">
+                        <strong>Query:</strong> ${query}<br>
+                        <strong>Query Embedding:</strong> ${formatEmbedding(state.queryEmbedding)}<br>
+                        <strong>Timestamp:</strong> ${new Date().toLocaleTimeString()}<br>
+                    </div>
+                </div>
+
+                <div class="debug-section">
+                    <div class="debug-title">📊 Retrieval Stats</div>
+                    <div style="color: #d0d0d0;">
+                        <strong>Total Chunks in DB:</strong> ${state.vectorDb.length}<br>
+                        <strong>Top-K:</strong> ${state.topK}<br>
+                        <strong>Retrieved:</strong> ${original.length}<br>
+                        <strong>Re-ranking Enabled:</strong> ${state.rerankEnabled ? 'Yes' : 'No'}<br>
+                        <strong>Avg Similarity:</strong> ${(original.reduce((sum, r) => sum + r.score, 0) / original.length).toFixed(3)}<br>
+                    </div>
+                </div>
+
+                <div class="debug-section">
+                    <div class="debug-title">🎯 Retrieved Chunks Detail</div>
+                    ${original.map((item, i) => `
+                        <div style="margin: 10px 0; padding: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 4px;">
+                            <strong style="color: #00d4ff;">Chunk ${item.id + 1}</strong>
+                            <span class="score ${getScoreClass(item.score)}" style="margin-left: 10px;">
+                                ${item.score.toFixed(3)}
+                            </span>
+                            ${state.rerankEnabled ? `<span class="score ${getScoreClass(item.rerankScore)}" style="margin-left: 5px;">
+                                Rerank: ${item.rerankScore.toFixed(3)}
+                            </span>` : ''}
+                            <div style="color: #9ca3af; font-size: 12px; margin-top: 5px;">${item.text.substring(0, 100)}...</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${state.rerankEnabled ? `
+                <div class="debug-section">
+                    <div class="debug-title">🔄 Re-ranking Changes</div>
+                    ${reranked.map((item, i) => {
+                        const originalPos = original.findIndex(o => o.id === item.id);
+                        const moved = originalPos !== i;
+                        return `
+                            <div style="color: ${moved ? '#00d4ff' : '#9ca3af'}; margin: 5px 0;">
+                                Chunk ${item.id + 1}: Rank ${originalPos + 1} → ${i + 1} 
+                                ${moved ? '(moved)' : '(unchanged)'}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                ` : ''}
+
+                <div class="debug-section">
+                    <div class="debug-title">⚠️ Active Failures</div>
+                    <div style="color: ${Object.values(state.failures).some(f => f) ? '#ef4444' : '#10b981'};">
+                        ${Object.entries(state.failures).filter(([k, v]) => v).map(([k]) => {
+                            const labels = {
+                                badChunking: 'Bad Chunking - Random splits affecting quality',
+                                poorEmbeddings: 'Poor Embeddings - Random vectors instead of semantic',
+                                missingContext: 'Missing Context - Randomly dropping relevant chunks',
+                                hallucination: 'Hallucination - Adding incorrect information to output'
+                            };
+                            return `• ${labels[k]}`;
+                        }).join('<br>') || '✓ No failures active - pipeline running normally'}
+                    </div>
+                </div>
+
+                <div class="debug-section">
+                    <div class="debug-title">📝 Final Prompt Preview</div>
+                    <div style="color: #9ca3af; font-size: 11px; max-height: 200px; overflow-y: auto;">
+                        ${document.getElementById('promptDisplay').innerHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayComparison() {
+            const section = document.getElementById('comparisonSection');
+            const display = document.getElementById('comparisonDisplay');
+            
+            section.style.display = 'block';
+            
+            display.innerHTML = state.queryHistory.slice(-3).map((history, idx) => `
+                <div class="query-result">
+                    <h4 style="color: #00d4ff; margin-bottom: 10px;">
+                        Query ${state.queryHistory.length - 2 + idx}: "${history.query}"
+                        <span style="font-size: 12px; color: #9ca3af; margin-left: 10px;">${history.timestamp}</span>
+                    </h4>
+                    <div style="margin: 10px 0;">
+                        <strong style="color: #9ca3af; font-size: 13px;">Retrieved:</strong>
+                        ${history.retrieved.map(r => `
+                            <div style="font-size: 12px; margin: 5px 0; padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 4px;">
+                                <span class="score ${getScoreClass(r.score || r.rerankScore)}">
+                                    ${(r.rerankScore || r.score).toFixed(3)}
+                                </span>
+                                <span style="color: #9ca3af; margin-left: 8px;">Chunk ${r.id + 1}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initialize
+        updateChunkSize();
+        updateTopK();
+        updateWarningBanner();
+    </script>
 </body>
 </html>
 ```
