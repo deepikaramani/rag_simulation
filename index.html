@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RAG Simulator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    margin: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.section {
+    background: #1e293b;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+}
+
+textarea, input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    border: none;
+}
+
+button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #2563eb;
+}
+
+.chunks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.chunk {
+    background: #334155;
+    padding: 8px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.highlight {
+    background: #22c55e;
+    color: black;
+}
+
+pre {
+    background: #020617;
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🔍 RAG Simulator</h1>
+
+<div class="section">
+<h3>1. Add Knowledge Base</h3>
+<textarea id="dataInput" rows="4" placeholder="Paste your newsletter or notes here..."></textarea>
+<button onclick="chunkData()">Chunk Data</button>
+</div>
+
+<div class="section">
+<h3>2. Chunks</h3>
+<div id="chunks" class="chunks"></div>
+</div>
+
+<div class="section">
+<h3>3. User Query</h3>
+<input id="queryInput" placeholder="Ask a question..." />
+<button onclick="retrieve()">Retrieve Relevant Chunks</button>
+</div>
+
+<div class="section">
+<h3>4. Retrieved Chunks (Top-K)</h3>
+<div id="retrieved" class="chunks"></div>
+</div>
+
+<div class="section">
+<h3>5. Prompt Augmentation</h3>
+<pre id="promptBox"></pre>
+</div>
+
+<div class="section">
+<h3>6. Simulated LLM Output</h3>
+<pre id="outputBox"></pre>
+</div>
+
+</div>
+
+<script>
+let chunks = [];
+
+function chunkData() {
+    const text = document.getElementById("dataInput").value;
+    chunks = text.split(".").map(c => c.trim()).filter(c => c);
+
+    const chunkContainer = document.getElementById("chunks");
+    chunkContainer.innerHTML = "";
+
+    chunks.forEach((c, i) => {
+        const div = document.createElement("div");
+        div.className = "chunk";
+        div.innerText = c;
+        chunkContainer.appendChild(div);
+    });
+}
+
+function similarity(a, b) {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+
+    let score = 0;
+    const words = b.split(" ");
+
+    words.forEach(w => {
+        if (a.includes(w)) score++;
+    });
+
+    return score;
+}
+
+function retrieve() {
+    const query = document.getElementById("queryInput").value;
+
+    let scored = chunks.map(c => ({
+        text: c,
+        score: similarity(c, query)
+    }));
+
+    scored.sort((a, b) => b.score - a.score);
+
+    const topK = scored.slice(0, 3);
+
+    const retrievedDiv = document.getElementById("retrieved");
+    retrievedDiv.innerHTML = "";
+
+    topK.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "chunk highlight";
+        div.innerText = c.text + " (score: " + c.score + ")";
+        retrievedDiv.appendChild(div);
+    });
+
+    buildPrompt(query, topK);
+    generateOutput(query, topK);
+}
+
+function buildPrompt(query, topK) {
+    const context = topK.map(c => c.text).join("\n");
+
+    const prompt = `
+You are an AI assistant.
+
+Use ONLY the context below to answer.
+
+Context:
+${context}
+
+Question:
+${query}
+`;
+
+    document.getElementById("promptBox").innerText = prompt;
+}
+
+function generateOutput(query, topK) {
+    let answer = "Based on the provided context:\n\n";
+
+    topK.forEach(c => {
+        answer += "- " + c.text + "\n";
+    });
+
+    answer += "\n(This is a simulated response)";
+
+    document.getElementById("outputBox").innerText = answer;
+}
+</script>
+
+</body>
+</html>
